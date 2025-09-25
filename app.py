@@ -147,8 +147,7 @@ with tab_generate:
                 generated_raws = []
                 try:
                     for i in range(num_images):
-                        resp = IMAGE_MODEL.generate_content([enhanced_prompt],
-                            generation_config={"response_mime_type": "image/png"})
+                        resp = IMAGE_MODEL.generate_content([enhanced_prompt])
                         for part in resp.candidates[0].content.parts:
                             if hasattr(part, "inline_data") and part.inline_data.data:
                                 generated_raws.append(part.inline_data.data)
