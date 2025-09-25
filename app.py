@@ -22,8 +22,8 @@ vertexai.init(project=PROJECT_ID, location="global", credentials=credentials)
 MODEL = GenerativeModel("gemini-2.5-flash-image-preview")
 
 # ---------------- STREAMLIT UI ----------------
-st.set_page_config(page_title="Nano Banana Image Editor", layout="wide")
-st.title("🍌✨ Nano Banana (Gemini 2.5 Flash Image) Editor")
+st.set_page_config(page_title="Image Editor", layout="wide")
+st.title("Image Editor")
 
 # Session history
 if "edited_images" not in st.session_state:
