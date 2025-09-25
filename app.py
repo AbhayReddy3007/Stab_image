@@ -102,21 +102,30 @@ def safe_get_enhanced_text(resp):
 
 
 def run_edit_flow(edit_prompt, base_bytes, filename):
-    """Run Gemini edit on base_bytes with given edit_prompt"""
+    """Run Gemini edit on base_bytes with given edit_prompt, with fallback"""
     input_image = Part.from_data(mime_type="image/png", data=base_bytes)
-    resp = IMAGE_MODEL.generate_content([edit_prompt, input_image])
+
+    # Force Gemini to interpret as edit task
+    edit_instruction = f"Edit the provided image as follows: {edit_prompt}. Always return only the edited image as inline PNG."
+
+    resp = IMAGE_MODEL.generate_content([edit_instruction, input_image])
 
     out_bytes = None
+    text_fallback = None
+
     for part in resp.candidates[0].content.parts:
         if hasattr(part, "inline_data") and part.inline_data.data:
             out_bytes = part.inline_data.data
-            break
-    if not out_bytes:
-        return None
+        elif hasattr(part, "text") and part.text:
+            text_fallback = part.text
 
-    # Save last edit for chaining
-    st.session_state.last_edits[filename] = out_bytes
-    return out_bytes
+    if out_bytes:
+        st.session_state.last_edits[filename] = out_bytes
+        return out_bytes
+    else:
+        if text_fallback:
+            st.warning(f"⚠️ Gemini did not return an image. Response: {text_fallback}")
+        return None
 
 
 # ---------------- TABS ----------------
@@ -174,9 +183,7 @@ with tab_generate:
                                     with st.spinner("Editing generated image..."):
                                         base_bytes = st.session_state.last_edits.get(filename, img_bytes)
                                         out_bytes = run_edit_flow(edit_prompt, base_bytes, filename)
-                                        if not out_bytes:
-                                            st.error("❌ No edited image returned by Gemini.")
-                                        else:
+                                        if out_bytes:
                                             st.image(Image.open(BytesIO(out_bytes)), caption=f"Edited {filename}", use_column_width=True)
                                             st.download_button("⬇️ Download Edited", data=out_bytes, file_name=f"edited_{filename}", mime="image/png", key=f"dl_edit_{idx}")
                                             st.session_state.edited_images.append({"original": base_bytes, "edited": out_bytes, "prompt": edit_prompt})
@@ -206,9 +213,7 @@ with tab_edit:
                 image_bytes = uploaded_file.read()
                 out_bytes = run_edit_flow(enhanced_prompt, image_bytes, f"upload_{datetime.datetime.now().strftime('%H%M%S')}")
 
-                if not out_bytes:
-                    st.error("❌ No image returned by Gemini. Try changing your instruction.")
-                else:
+                if out_bytes:
                     col1, col2 = st.columns(2)
                     with col1:
                         st.image(Image.open(BytesIO(image_bytes)), caption="Original", use_column_width=True)
