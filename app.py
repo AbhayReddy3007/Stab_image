@@ -26,8 +26,8 @@ IMAGE_MODEL = GenerativeModel("gemini-2.5-flash-image-preview")  # Nano Banana
 TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
-st.set_page_config(page_title="Image Generator + Editor", layout="wide")
-st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement)")
+st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
+st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement + WebP Support)")
 
 # ---------------- STATE ----------------
 if "generated_images" not in st.session_state:
@@ -176,7 +176,7 @@ with tab_edit:
 
     dept_edit = st.selectbox("🏢 Department", options=list(PROMPT_TEMPLATES.keys()), index=2, key="dept_edit")
     style_edit = st.selectbox("🎨 Style", options=list(STYLE_DESCRIPTIONS.keys()), index=0, key="style_edit")
-    uploaded_file = st.file_uploader("📤 Upload an image", type=["png", "jpg", "jpeg"])
+    uploaded_file = st.file_uploader("📤 Upload an image", type=["png", "jpg", "jpeg", "webp"])
     raw_prompt_edit = st.text_area("Enter your edit instruction", height=120, key="prompt_edit")
 
     if st.button("🚀 Edit Image", key="edit_btn_upload"):
@@ -193,6 +193,16 @@ with tab_edit:
 
             with st.spinner("Editing uploaded image with Nano Banana..."):
                 image_bytes = uploaded_file.read()
+                mime_type = "image/" + uploaded_file.type.split("/")[-1]
+
+                # ✅ Convert WebP → PNG for Gemini
+                if mime_type == "image/webp":
+                    img = Image.open(BytesIO(image_bytes)).convert("RGB")
+                    buf = BytesIO()
+                    img.save(buf, format="PNG")
+                    image_bytes = buf.getvalue()
+                    mime_type = "image/png"
+
                 out_bytes = run_edit_flow(enhanced_prompt, image_bytes, f"upload_{datetime.datetime.now().strftime('%H%M%S')}")
 
                 if out_bytes:
