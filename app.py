@@ -27,7 +27,7 @@ TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
 st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
-st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement + WebP Support)")
+st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement + WebP + Multi-Edit)")
 
 # ---------------- STATE ----------------
 if "generated_images" not in st.session_state:
@@ -175,7 +175,6 @@ Refined business image prompt:
 """
 }
 
-
 STYLE_DESCRIPTIONS = {
     "None": "No special styling — keep the image natural, faithful to the user’s idea.",
     "Smart": "A clean, balanced, and polished look. Professional yet neutral, visually appealing without strong artistic bias.",
@@ -309,6 +308,7 @@ with tab_edit:
     style_edit = st.selectbox("🎨 Style", options=list(STYLE_DESCRIPTIONS.keys()), index=0, key="style_edit")
     uploaded_file = st.file_uploader("📤 Upload an image", type=["png", "jpg", "jpeg", "webp"])
     raw_prompt_edit = st.text_area("Enter your edit instruction", height=120, key="prompt_edit")
+    num_edit_images = st.slider("🧾 Number of edited images", 1, 4, 1, key="num_edit")
 
     if st.button("🚀 Edit Image", key="edit_btn_upload"):
         if not uploaded_file or not raw_prompt_edit.strip():
@@ -334,17 +334,33 @@ with tab_edit:
                     image_bytes = buf.getvalue()
                     mime_type = "image/png"
 
-                out_bytes = run_edit_flow(enhanced_prompt, image_bytes, f"upload_{datetime.datetime.now().strftime('%H%M%S')}")
+                edited_versions = []
+                for i in range(num_edit_images):
+                    out_bytes = run_edit_flow(
+                        enhanced_prompt,
+                        image_bytes,
+                        f"upload_{datetime.datetime.now().strftime('%H%M%S')}_{i}"
+                    )
+                    if out_bytes:
+                        edited_versions.append(out_bytes)
 
-                if out_bytes:
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.image(Image.open(BytesIO(image_bytes)), caption="Original", use_column_width=True)
-                    with col2:
-                        st.image(Image.open(BytesIO(out_bytes)), caption="Edited", use_column_width=True)
-
-                    st.download_button("⬇️ Download Edited Image", data=out_bytes, file_name="edited.png", mime="image/png")
-                    st.session_state.edited_images.append({"original": image_bytes, "edited": out_bytes, "prompt": enhanced_prompt})
+                if edited_versions:
+                    cols = st.columns(len(edited_versions))
+                    for i, out_bytes in enumerate(edited_versions):
+                        with cols[i]:
+                            st.image(Image.open(BytesIO(out_bytes)), caption=f"Edited Version {i+1}", use_column_width=True)
+                            st.download_button(
+                                f"⬇️ Download Edited {i+1}",
+                                data=out_bytes,
+                                file_name=f"edited_{i}.png",
+                                mime="image/png",
+                                key=f"edit_download_{i}"
+                            )
+                            st.session_state.edited_images.append({
+                                "original": image_bytes,
+                                "edited": out_bytes,
+                                "prompt": enhanced_prompt
+                            })
 
 # ---------------- HISTORY ----------------
 st.subheader("📂 History")
