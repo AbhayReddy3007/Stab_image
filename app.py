@@ -215,7 +215,7 @@ if st.session_state.generated_images:
     st.markdown("### Generated Images")
     for i, img in enumerate(reversed(st.session_state.generated_images[-20:])):
         with st.expander(f"Generated {i+1}: {img['filename']}"):
-            st.image(Image.open(BytesIO(img["content"])), caption=img["filename"], use_container_width=True)
+            st.image(Image.open(BytesIO(img["content"])), caption=img["filename"], use_column_width=True)
             st.download_button("⬇️ Download Again", data=img["content"], file_name=img["filename"], mime="image/png", key=f"gen_hist_{i}")
 
 if st.session_state.edited_images:
@@ -224,7 +224,7 @@ if st.session_state.edited_images:
         with st.expander(f"Edited {i+1}: {entry['prompt']}"):
             col1, col2 = st.columns(2)
             with col1:
-                st.image(Image.open(BytesIO(entry["original"])), caption="Original", use_container_width=True)
+                st.image(Image.open(BytesIO(entry["original"])), caption="Original", use_column_width=True)
             with col2:
-                st.image(Image.open(BytesIO(entry["edited"])), caption="Edited", use_container_width=True)
+                st.image(Image.open(BytesIO(entry["edited"])), caption="Edited", use_column_width=True)
             st.download_button("⬇️ Download Edited", data=entry["edited"], file_name=f"edited_{i}.png", mime="image/png", key=f"edit_hist_{i}")
