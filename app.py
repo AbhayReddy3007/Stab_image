@@ -165,7 +165,41 @@ with tab_generate:
                             st.image(Image.open(BytesIO(img_bytes)), caption=filename, use_column_width=True)
                             st.download_button("⬇️ Download", data=img_bytes, file_name=filename, mime="image/png")
 
-# ---------------- EDIT MODE ----------------
+                            # --- NEW: Edit generated image ---
+                            edit_prompt = st.text_area(f"✏️ Edit instruction for {filename}", key=f"edit_prompt_{idx}", height=100)
+                            if st.button(f"🖌️ Edit {filename}", key=f"edit_btn_{idx}"):
+                                if not edit_prompt.strip():
+                                    st.warning("Please enter an edit instruction.")
+                                else:
+                                    with st.spinner("Editing generated image..."):
+                                        try:
+                                            input_image = Part.from_data(mime_type="image/png", data=img_bytes)
+                                            resp = IMAGE_MODEL.generate_content([edit_prompt, input_image])
+
+                                            out_bytes = None
+                                            for part in resp.candidates[0].content.parts:
+                                                if hasattr(part, "inline_data") and part.inline_data.data:
+                                                    out_bytes = part.inline_data.data
+                                                    break
+
+                                            if not out_bytes:
+                                                st.error("❌ No edited image returned by Gemini.")
+                                            else:
+                                                st.image(Image.open(BytesIO(out_bytes)), caption=f"Edited {filename}", use_column_width=True)
+                                                st.download_button(
+                                                    "⬇️ Download Edited",
+                                                    data=out_bytes,
+                                                    file_name=f"edited_{filename}",
+                                                    mime="image/png",
+                                                    key=f"dl_edit_{idx}"
+                                                )
+                                                st.session_state.edited_images.append(
+                                                    {"original": img_bytes, "edited": out_bytes, "prompt": edit_prompt}
+                                                )
+                                        except Exception as e:
+                                            st.error(f"⚠️ Error editing generated image: {e}")
+
+# ---------------- EDIT MODE (Upload) ----------------
 with tab_edit:
     st.header("🖌️ Edit Uploaded Images")
 
@@ -196,10 +230,8 @@ with tab_edit:
                     mime_type = "image/" + uploaded_file.type.split("/")[-1]
                     input_image = Part.from_data(mime_type=mime_type, data=image_bytes)
 
-                    # ✅ text first, then image
                     resp = IMAGE_MODEL.generate_content([enhanced_prompt, input_image])
 
-                    # ✅ Safely extract image
                     out_bytes = None
                     for part in resp.candidates[0].content.parts:
                         if hasattr(part, "inline_data") and part.inline_data.data:
