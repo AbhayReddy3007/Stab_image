@@ -1,81 +1,58 @@
-import streamlit as st
-import requests
-import base64
+import os
 import io
+import streamlit as st
 from PIL import Image
 
+import vertexai
+from vertexai.generative_models import GenerativeModel, Part
+
 # ---------------- CONFIG ----------------
-API_KEY = ""
-API_URL = "https://api.stability.ai/v1/generation/stable-diffusion-v1-5/image-to-image"
+PROJECT_ID = "drl-zenai-prod"
+REGION = "us-central1"
 
-st.set_page_config(page_title="Stable Diffusion Image Editor", layout="wide")
-st.title("🖼️ Stable Diffusion Image Editor")
+# Init Vertex AI
+vertexai.init(project=PROJECT_ID, location=REGION)
 
-# ---------------- UI ----------------
-init_image_file = st.file_uploader("📤 Upload an image to edit", type=["png", "jpg", "jpeg"])
-mask_file = st.file_uploader("📤 Upload a mask image (optional, white = editable, black = keep)", type=["png"])
+# Load Nano Banana (Gemini 2.5 Flash Image Preview)
+MODEL = GenerativeModel("gemini-2.5-flash-image-preview")
 
-prompt = st.text_area("✨ Enter your edit prompt:", height=120, placeholder="e.g., Replace background with a futuristic neon city")
+# ---------------- STREAMLIT UI ----------------
+st.set_page_config(page_title="Nano Banana Image Editor", layout="wide")
+st.title("🍌✨ Nano Banana (Gemini 2.5 Flash Image) Editor")
 
-strength = st.slider("🎚️ Strength (how much to modify the original image)", 0.1, 1.0, 0.75, 0.05)
+uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+prompt = st.text_area("Enter your edit instruction", placeholder="e.g. Turn the background into a futuristic neon city")
 
-num_images = st.slider("🧾 Number of images", min_value=1, max_value=4, value=1)
-
-# ---------------- Generation flow ----------------
-if st.button("🚀 Generate Edited Image"):
-    if not init_image_file or not prompt.strip():
-        st.warning("Please upload an image and enter a prompt!")
+if st.button("🚀 Edit Image"):
+    if not uploaded_file or not prompt.strip():
+        st.warning("Please upload an image and enter a prompt.")
     else:
-        with st.spinner("Editing image with Stable Diffusion..."):
-            try:
-                # Read images
-                init_image_bytes = init_image_file.read()
-                files = {
-                    "init_image": init_image_bytes
-                }
+        st.spinner("Editing image with Nano Banana...")
 
-                if mask_file:
-                    files["mask_image"] = mask_file.read()
+        # Read uploaded image
+        image_bytes = uploaded_file.read()
+        input_image = Part.from_data(mime_type=f"image/{uploaded_file.type.split('/')[-1]}", data=image_bytes)
 
-                # Request payload
-                data = {
-                    "text_prompts[0][text]": prompt,
-                    "cfg_scale": 7,          # prompt guidance
-                    "clip_guidance_preset": "FAST_BLUE",
-                    "samples": num_images,
-                    "steps": 50,
-                    "init_image_mode": "IMAGE_STRENGTH",
-                    "image_strength": strength
-                }
+        try:
+            resp = MODEL.generate_content([input_image, prompt])
 
-                headers = {
-                    "Authorization": f"Bearer {API_KEY}"
-                }
+            # Extract image bytes
+            out_bytes = resp.candidates[0].content.parts[0].data
 
-                # API call
-                response = requests.post(API_URL, headers=headers, files=files, data=data)
+            # Show results
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image(image_bytes, caption="Original", use_container_width=True)
+            with col2:
+                st.image(out_bytes, caption="Edited", use_container_width=True)
 
-                if response.status_code != 200:
-                    st.error(f"Error: {response.status_code} - {response.text}")
-                else:
-                    results = response.json()
-                    cols = st.columns(len(results["artifacts"]))
-                    for i, artifact in enumerate(results["artifacts"]):
-                        img_base64 = artifact["base64"]
-                        img_bytes = base64.b64decode(img_base64)
-                        img = Image.open(io.BytesIO(img_bytes))
+            # Download button
+            st.download_button(
+                "⬇️ Download Edited Image",
+                data=out_bytes,
+                file_name="edited.png",
+                mime="image/png"
+            )
 
-                        filename = f"edited_image_{i+1}.png"
-
-                        with cols[i]:
-                            st.image(img, caption=filename, use_column_width=True)
-                            st.download_button(
-                                "⬇️ Download",
-                                data=img_bytes,
-                                file_name=filename,
-                                mime="image/png",
-                                key=f"dl_{i}"
-                            )
-
-            except Exception as e:
-                st.error(f"⚠️ Error editing image: {e}")
+        except Exception as e:
+            st.error(f"⚠️ Error: {e}")
