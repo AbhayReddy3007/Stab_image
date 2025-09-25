@@ -27,7 +27,7 @@ TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
 st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
-st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement + WebP + Multi-Edit + Send to Edit)")
+st.title("🖼️ AI Image Generator + Editor (Nano Banana + Refinement + WebP + Multi-Edit + Send to Edit)")
 
 # ---------------- STATE ----------------
 if "generated_images" not in st.session_state:
@@ -182,7 +182,10 @@ with tab_generate:
 with tab_edit:
     st.header("🖌️ Edit Images")
 
-    # Check if image was sent from Generate tab
+    # Always initialize base_image
+    base_image = None
+
+    # If user sent an image from Generate tab
     if st.session_state.get("selected_for_edit"):
         base_image = st.session_state.selected_for_edit["content"]
         st.image(Image.open(BytesIO(base_image)),
@@ -193,7 +196,6 @@ with tab_edit:
             base_image = None
     else:
         uploaded_file = st.file_uploader("📤 Or upload an image", type=["png", "jpg", "jpeg", "webp"])
-        base_image = None
         if uploaded_file:
             image_bytes = uploaded_file.read()
             mime_type = "image/" + uploaded_file.type.split("/")[-1]
