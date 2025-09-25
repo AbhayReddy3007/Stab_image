@@ -32,7 +32,7 @@ TEXT_MODEL_NAME = "gemini-2.0-flash"
 TEXT_MODEL = GenerativeModel(TEXT_MODEL_NAME)
 
 # ---------------- STREAMLIT UI ----------------
-st.set_page_config(page_title="AI Image Generator", layout="wide")
+st.set_page_config(page_title="Banana Image Generator", layout="wide")
 st.title("🖼️ AI Image Generator (Gemini 2.5 Flash Image Preview)")
 
 # ---------------- STATE ----------------
