@@ -34,187 +34,59 @@ if "generated_images" not in st.session_state:
     st.session_state.generated_images = []  # [{"filename","content"}]
 if "edited_images" not in st.session_state:
     st.session_state.edited_images = []  # [{"original","edited","prompt"}]
+if "selected_for_edit" not in st.session_state:
+    st.session_state.selected_for_edit = None  # store image bytes from Generate tab
 
 # ---------------- Prompt Templates ----------------
 PROMPT_TEMPLATES = {
-    "Marketing": """
-You are a senior AI prompt engineer creating polished prompts for marketing and advertising visuals.
-
-Your job:
-- Transform the raw input into a compelling, professional, campaign-ready image prompt.
-- Expand with persuasive details about:
-  • Background and setting (modern, lifestyle, commercial, aspirational)
-  • Lighting and atmosphere (studio lights, golden hour, cinematic)
-  • Style (photorealistic, cinematic, product photography, lifestyle branding)
-  • Perspective and composition (wide shot, close-up, dramatic angles)
-  • Mood, tone, and branding suitability (premium, sleek, aspirational)
-
-Rules:
-- Stay faithful to the user’s idea but elevate it for ads, social media, or presentations.
-- Output only the final refined image prompt.
-
-User’s raw prompt:
+    "Marketing": """Refine for marketing visuals:
+User’s input:
 "{USER_PROMPT}"
 
-Refined marketing image prompt:
+Refined prompt:
 """,
-
-    "Design": """
-You are a senior AI prompt engineer supporting a creative design team.
-
-Your job:
-- Expand raw input into a visually inspiring, design-oriented image prompt.
-- Add imaginative details about:
-  • Artistic styles (minimalist, abstract, futuristic, flat, 3D render, watercolor, digital illustration)
-  • Color schemes, palettes, textures, and patterns
-  • Composition and balance (symmetry, negative space, creative framing)
-  • Lighting and atmosphere (soft glow, vibrant contrast, surreal shading)
-  • Perspective (isometric, top-down, wide shot, close-up)
-
-Rules:
-- Keep fidelity to the idea but make it highly creative and visually unique.
-- Output only the final refined image prompt.
-
-User’s raw prompt:
+    "Design": """Refine for design visuals:
+User’s input:
 "{USER_PROMPT}"
 
-Refined design image prompt:
+Refined prompt:
 """,
-
-    "General": """
-You are an expert AI prompt engineer specialized in creating vivid and descriptive image prompts.
-
-Your job:
-- Expand the user’s input into a detailed, clear prompt for an image generation model.
-- Add missing details such as:
-  • Background and setting
-  • Lighting and mood
-  • Style and realism level
-  • Perspective and composition
-
-Rules:
-- Stay true to the user’s intent.
-- Keep language concise, descriptive, and expressive.
-- Output only the final refined image prompt.
-
-User’s raw prompt:
+    "General": """Refine for general visuals:
+User’s input:
 "{USER_PROMPT}"
 
-Refined general image prompt:
+Refined prompt:
 """,
-
-    "DPEX": """
-You are a senior AI prompt engineer creating refined prompts for IT and technology-related visuals.
-
-Your job:
-- Transform the raw input into a detailed, professional, and technology-focused image prompt.
-- Expand with contextual details about:
-  • Technology environments (server rooms, data centers, cloud systems, coding workspaces)
-  • Digital elements (network diagrams, futuristic UIs, holograms, cybersecurity visuals)
-  • People in IT roles (developers, engineers, admins, tech support, collaboration)
-  • Tone (innovative, technical, futuristic, professional)
-  • Composition (screens, servers, code on monitors, abstract digital patterns)
-  • Lighting and effects (LED glow, cyberpunk tones, neon highlights, modern tech ambiance)
-
-Rules:
-- Ensure images are suitable for IT presentations, product demos, training, technical documentation, and digital transformation campaigns.
-- Stay true to the user’s intent but emphasize a technological and innovative look.
-- Output only the final refined image prompt.
-
-User’s raw prompt:
+    "DPEX": """Refine for IT/tech visuals:
+User’s input:
 "{USER_PROMPT}"
 
-Refined DPEX image prompt:
+Refined prompt:
 """,
-
-    "HR": """
-You are a senior AI prompt engineer creating refined prompts for human resources and workplace-related visuals.
-
-Your job:
-- Transform the raw input into a detailed, professional, and HR-focused image prompt.
-- Expand with contextual details about:
-  • Workplace settings (modern office, meeting rooms, open workspaces, onboarding sessions)
-  • People interactions (interviews, teamwork, training, collaboration, diversity and inclusion)
-  • Themes (employee engagement, professional growth, recruitment, performance evaluation)
-  • Composition (groups in discussion, managers mentoring, collaborative workshops)
-  • Lighting and tone (bright, welcoming, professional, inclusive)
-
-Rules:
-- Ensure images are suitable for HR presentations, recruitment campaigns, internal training, or employee engagement material.
-- Stay true to the user’s intent but emphasize people, culture, and workplace positivity.
-- Output only the final refined image prompt.
-
-User’s raw prompt:
+    "HR": """Refine for HR/workplace visuals:
+User’s input:
 "{USER_PROMPT}"
 
-Refined HR image prompt:
+Refined prompt:
 """,
-
-    "Business": """
-You are a senior AI prompt engineer creating refined prompts for business and corporate visuals.
-
-Your job:
-- Transform the raw input into a detailed, professional, and business-oriented image prompt.
-- Expand with contextual details about:
-  • Corporate settings (boardrooms, skyscrapers, modern offices, networking events)
-  • Business activities (presentations, negotiations, brainstorming sessions, teamwork)
-  • People (executives, entrepreneurs, consultants, diverse teams, global collaboration)
-  • Tone (professional, ambitious, strategic, innovative)
-  • Composition (formal meetings, handshake deals, conference tables, city skyline backgrounds)
-  • Lighting and atmosphere (clean, modern, premium, professional)
-
-Rules:
-- Ensure images are suitable for corporate branding, investor decks, strategy sessions, or professional reports.
-- Stay true to the user’s intent but emphasize professionalism, ambition, and success.
-- Output only the final refined image prompt.
-
-User’s raw prompt:
+    "Business": """Refine for business/corporate visuals:
+User’s input:
 "{USER_PROMPT}"
 
-Refined business image prompt:
+Refined prompt:
 """
 }
 
 STYLE_DESCRIPTIONS = {
-    "None": "No special styling — keep the image natural, faithful to the user’s idea.",
-    "Smart": "A clean, balanced, and polished look. Professional yet neutral, visually appealing without strong artistic bias.",
-    "Cinematic": "Film-style composition with professional lighting. Wide dynamic range, dramatic highlights, storytelling feel.",
-    "Cinematic Concept": "Epic and dramatic like a movie concept frame. Wide cinematic perspective, moody atmosphere, detailed world-building.",
-    "Creative": "Playful, imaginative, and experimental. Bold artistic choices, unexpected elements, and expressive color use.",
-    "Bokeh": "Photography style with shallow depth of field. Subject in sharp focus with soft, dreamy, blurred backgrounds.",
-    "Macro": "Extreme close-up photography. High detail, textures visible, shallow focus highlighting minute features.",
-    "Illustration": "Hand-drawn or digitally illustrated style. Clear outlines, stylized shading, expressive and artistic.",
-    "3D Render": "Photorealistic or stylized CGI. Crisp geometry, depth, shadows, and reflective surfaces with realistic rendering.",
-    "Fashion": "High-end editorial photography. Stylish, glamorous poses, bold makeup, controlled lighting, and modern aesthetic.",
-    "Minimalist": "Simple and uncluttered. Few elements, large negative space, flat or muted color palette, clean composition.",
-    "Moody": "Dark, atmospheric, and emotional. Strong shadows, high contrast, deep tones, cinematic ambiance.",
-    "Portrait": "Focus on the subject. Natural skin tones, shallow depth of field, close-up or waist-up framing, studio or natural lighting.",
-    "Stock Photo": "Professional, commercial-quality photo. Neutral subject matter, polished composition, business-friendly aesthetic.",
-    "Vibrant": "Bold, saturated colors. High contrast, energetic mood, eye-catching and lively presentation.",
-    "Pop Art": "Comic-book and pop-art inspired. Bold outlines, halftone patterns, flat vivid colors, high contrast, playful tone.",
-    "Vector": "Flat vector graphics. Smooth shapes, sharp edges, solid fills, and clean scalable style like logos or icons.",
-
-    "Watercolor": "Soft, fluid strokes with delicate blending and washed-out textures. Artistic and dreamy.",
-    "Oil Painting": "Rich, textured brushstrokes. Classic fine art look with deep color blending.",
-    "Charcoal": "Rough, sketchy textures with dark shading. Artistic, raw, dramatic effect.",
-    "Line Art": "Minimal monochrome outlines with clean, bold strokes. No shading, focus on form.",
-
-    "Anime": "Japanese animation style with vibrant colors, clean outlines, expressive features, and stylized proportions.",
-    "Cartoon": "Playful, exaggerated features, simplified shapes, bold outlines, and bright colors.",
-    "Pixel Art": "Retro digital art style. Small, pixel-based visuals resembling old-school video games.",
-
-    "Fantasy Art": "Epic fantasy scenes. Magical elements, mythical creatures, enchanted landscapes.",
-    "Surreal": "Dreamlike, bizarre imagery. Juxtaposes unexpected elements, bending reality.",
-    "Concept Art": "Imaginative, detailed artwork for games or films. Often moody and cinematic.",
-
-    "Cyberpunk": "Futuristic neon city vibes. High contrast, glowing lights, dark tones, sci-fi feel.",
-    "Steampunk": "Retro-futuristic style with gears, brass, Victorian aesthetics, and industrial design.",
-    "Neon Glow": "Bright neon outlines and glowing highlights. Futuristic, nightlife aesthetic.",
-    "Low Poly": "Simplified 3D style using flat geometric shapes and polygons.",
-    "Isometric": "3D look with isometric perspective. Often used for architecture, games, and diagrams.",
-
-    "Vintage": "Old-school, retro tones. Faded colors, film grain, sepia, or retro print feel.",
-    "Graffiti": "Urban street art style with bold colors, spray paint textures, and rebellious tone."
+    "None": "No special styling — keep natural.",
+    "Smart": "Clean and balanced look, professional but neutral.",
+    "Cinematic": "Film-style lighting and composition, storytelling vibe.",
+    "Creative": "Playful, imaginative, bold artistic choices.",
+    "Minimalist": "Simple, uncluttered, with negative space.",
+    "Vibrant": "Bold, saturated colors, energetic tone.",
+    "Cyberpunk": "Futuristic neon city vibes, glowing lights, dark tones.",
+    "Stock Photo": "Commercial quality, business-friendly aesthetic.",
+    "Portrait": "Focus on the subject with natural tones, shallow DOF.",
 }
 
 # ---------------- Helpers ----------------
@@ -256,7 +128,7 @@ def run_edit_flow(edit_prompt, base_bytes, filename):
 
 
 # ---------------- TABS ----------------
-tab_generate, tab_edit = st.tabs(["✨ Generate Images", "🖌️ Edit Uploaded Images"])
+tab_generate, tab_edit = st.tabs(["✨ Generate Images", "🖌️ Edit Images"])
 
 # ---------------- GENERATE MODE ----------------
 with tab_generate:
@@ -291,28 +163,50 @@ with tab_generate:
                     st.error(f"⚠️ Image generation error: {e}")
 
                 if generated_raws:
-                    cols = st.columns(len(generated_raws))
                     for idx, img_bytes in enumerate(generated_raws):
                         filename = f"{dept_gen.lower()}_{style_gen.lower()}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{idx}.png"
                         st.session_state.generated_images.append({"filename": filename, "content": img_bytes})
 
-                        with cols[idx]:
+                        with st.container():
                             st.image(Image.open(BytesIO(img_bytes)), caption=filename, use_column_width=True)
-                            st.download_button("⬇️ Download", data=img_bytes, file_name=filename, mime="image/png")
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.download_button("⬇️ Download", data=img_bytes, file_name=filename, mime="image/png", key=f"dl_{idx}")
+                            with col2:
+                                if st.button("✏️ Send to Edit tab", key=f"send_edit_{idx}"):
+                                    st.session_state.selected_for_edit = {"filename": filename, "content": img_bytes}
+                                    st.success("✅ Image sent to Edit tab! Switch to Edit tab to continue.")
 
-# ---------------- EDIT MODE (Upload) ----------------
+
+# ---------------- EDIT MODE ----------------
 with tab_edit:
-    st.header("🖌️ Edit Uploaded Images")
+    st.header("🖌️ Edit Images")
 
     dept_edit = st.selectbox("🏢 Department", options=list(PROMPT_TEMPLATES.keys()), index=2, key="dept_edit")
     style_edit = st.selectbox("🎨 Style", options=list(STYLE_DESCRIPTIONS.keys()), index=0, key="style_edit")
-    uploaded_file = st.file_uploader("📤 Upload an image", type=["png", "jpg", "jpeg", "webp"])
     raw_prompt_edit = st.text_area("Enter your edit instruction", height=120, key="prompt_edit")
     num_edit_images = st.slider("🧾 Number of edited images", 1, 4, 1, key="num_edit")
 
+    # Check if image was sent from Generate tab
+    if st.session_state.selected_for_edit:
+        base_image = st.session_state.selected_for_edit["content"]
+        st.image(Image.open(BytesIO(base_image)), caption="Image selected from Generate tab", use_column_width=True)
+    else:
+        uploaded_file = st.file_uploader("📤 Or upload an image", type=["png", "jpg", "jpeg", "webp"])
+        base_image = None
+        if uploaded_file:
+            image_bytes = uploaded_file.read()
+            mime_type = "image/" + uploaded_file.type.split("/")[-1]
+            if mime_type == "image/webp":  # ✅ Convert WebP → PNG
+                img = Image.open(BytesIO(image_bytes)).convert("RGB")
+                buf = BytesIO()
+                img.save(buf, format="PNG")
+                image_bytes = buf.getvalue()
+            base_image = image_bytes
+
     if st.button("🚀 Edit Image", key="edit_btn_upload"):
-        if not uploaded_file or not raw_prompt_edit.strip():
-            st.warning("Please upload an image and enter an instruction.")
+        if not base_image or not raw_prompt_edit.strip():
+            st.warning("Please select/upload an image and enter an instruction.")
         else:
             with st.spinner("Refining edit instruction with Gemini..."):
                 refinement_prompt = PROMPT_TEMPLATES[dept_edit].replace("{USER_PROMPT}", raw_prompt_edit)
@@ -322,24 +216,13 @@ with tab_edit:
                 enhanced_prompt = safe_get_enhanced_text(text_resp).strip()
                 st.info(f"🔮 Enhanced Instruction:\n\n{enhanced_prompt}")
 
-            with st.spinner("Editing uploaded image with Nano Banana..."):
-                image_bytes = uploaded_file.read()
-                mime_type = "image/" + uploaded_file.type.split("/")[-1]
-
-                # ✅ Convert WebP → PNG for Gemini
-                if mime_type == "image/webp":
-                    img = Image.open(BytesIO(image_bytes)).convert("RGB")
-                    buf = BytesIO()
-                    img.save(buf, format="PNG")
-                    image_bytes = buf.getvalue()
-                    mime_type = "image/png"
-
+            with st.spinner("Editing image with Nano Banana..."):
                 edited_versions = []
                 for i in range(num_edit_images):
                     out_bytes = run_edit_flow(
                         enhanced_prompt,
-                        image_bytes,
-                        f"upload_{datetime.datetime.now().strftime('%H%M%S')}_{i}"
+                        base_image,
+                        f"edit_{datetime.datetime.now().strftime('%H%M%S')}_{i}"
                     )
                     if out_bytes:
                         edited_versions.append(out_bytes)
@@ -357,7 +240,7 @@ with tab_edit:
                                 key=f"edit_download_{i}"
                             )
                             st.session_state.edited_images.append({
-                                "original": image_bytes,
+                                "original": base_image,
                                 "edited": out_bytes,
                                 "prompt": enhanced_prompt
                             })
