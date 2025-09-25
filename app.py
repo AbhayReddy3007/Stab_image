@@ -91,52 +91,134 @@ num_images = 1
 PROMPT_TEMPLATES = {
     "Marketing": """
 You are a senior AI prompt engineer creating polished prompts for marketing and advertising visuals.
-Expand the raw input into a compelling, professional image prompt with details about background, lighting, style, composition, and branding tone.
+
+Your job:
+- Transform the raw input into a compelling, professional, campaign-ready image prompt.
+- Expand with persuasive details about:
+  • Background and setting (modern, lifestyle, commercial, aspirational)
+  • Lighting and atmosphere (studio lights, golden hour, cinematic)
+  • Style (photorealistic, cinematic, product photography, lifestyle branding)
+  • Perspective and composition (wide shot, close-up, dramatic angles)
+  • Mood, tone, and branding suitability (premium, sleek, aspirational)
+
+Rules:
+- Stay faithful to the user’s idea but elevate it for ads, social media, or presentations.
+- Output only the final refined image prompt.
 
 User’s raw prompt:
 "{USER_PROMPT}"
 
 Refined marketing image prompt:
 """,
+
     "Design": """
 You are a senior AI prompt engineer supporting a creative design team.
-Expand the raw input into a visually inspiring prompt with details on artistic style, color scheme, composition, and creative tone.
+
+Your job:
+- Expand raw input into a visually inspiring, design-oriented image prompt.
+- Add imaginative details about:
+  • Artistic styles (minimalist, abstract, futuristic, flat, 3D render, watercolor, digital illustration)
+  • Color schemes, palettes, textures, and patterns
+  • Composition and balance (symmetry, negative space, creative framing)
+  • Lighting and atmosphere (soft glow, vibrant contrast, surreal shading)
+  • Perspective (isometric, top-down, wide shot, close-up)
+
+Rules:
+- Keep fidelity to the idea but make it highly creative and visually unique.
+- Output only the final refined image prompt.
 
 User’s raw prompt:
 "{USER_PROMPT}"
 
 Refined design image prompt:
 """,
+
     "General": """
-You are an expert AI prompt engineer creating vivid and descriptive image prompts.
-Expand the input with details on background, lighting, style, perspective, and mood.
+You are an expert AI prompt engineer specialized in creating vivid and descriptive image prompts.
+
+Your job:
+- Expand the user’s input into a detailed, clear prompt for an image generation model.
+- Add missing details such as:
+  • Background and setting
+  • Lighting and mood
+  • Style and realism level
+  • Perspective and composition
+
+Rules:
+- Stay true to the user’s intent.
+- Keep language concise, descriptive, and expressive.
+- Output only the final refined image prompt.
 
 User’s raw prompt:
 "{USER_PROMPT}"
 
 Refined general image prompt:
 """,
+
     "DPEX": """
-You are a senior AI prompt engineer creating refined prompts for IT and technology visuals.
-Expand the raw input into a detailed, futuristic image prompt with servers, code, UIs, and neon tech ambiance.
+You are a senior AI prompt engineer creating refined prompts for IT and technology-related visuals.
+
+Your job:
+- Transform the raw input into a detailed, professional, and technology-focused image prompt.
+- Expand with contextual details about:
+  • Technology environments (server rooms, data centers, cloud systems, coding workspaces)
+  • Digital elements (network diagrams, futuristic UIs, holograms, cybersecurity visuals)
+  • People in IT roles (developers, engineers, admins, tech support, collaboration)
+  • Tone (innovative, technical, futuristic, professional)
+  • Composition (screens, servers, code on monitors, abstract digital patterns)
+  • Lighting and effects (LED glow, cyberpunk tones, neon highlights, modern tech ambiance)
+
+Rules:
+- Ensure images are suitable for IT presentations, product demos, training, technical documentation, and digital transformation campaigns.
+- Stay true to the user’s intent but emphasize a technological and innovative look.
+- Output only the final refined image prompt.
 
 User’s raw prompt:
 "{USER_PROMPT}"
 
 Refined DPEX image prompt:
 """,
+
     "HR": """
-You are a senior AI prompt engineer creating refined prompts for HR visuals.
-Expand the raw input into a workplace-focused prompt with office settings, teamwork, diversity, and professional tone.
+You are a senior AI prompt engineer creating refined prompts for human resources and workplace-related visuals.
+
+Your job:
+- Transform the raw input into a detailed, professional, and HR-focused image prompt.
+- Expand with contextual details about:
+  • Workplace settings (modern office, meeting rooms, open workspaces, onboarding sessions)
+  • People interactions (interviews, teamwork, training, collaboration, diversity and inclusion)
+  • Themes (employee engagement, professional growth, recruitment, performance evaluation)
+  • Composition (groups in discussion, managers mentoring, collaborative workshops)
+  • Lighting and tone (bright, welcoming, professional, inclusive)
+
+Rules:
+- Ensure images are suitable for HR presentations, recruitment campaigns, internal training, or employee engagement material.
+- Stay true to the user’s intent but emphasize people, culture, and workplace positivity.
+- Output only the final refined image prompt.
 
 User’s raw prompt:
 "{USER_PROMPT}"
 
 Refined HR image prompt:
 """,
+
     "Business": """
-You are a senior AI prompt engineer creating refined prompts for business visuals.
-Expand the raw input into a corporate, professional prompt with boardrooms, executives, teamwork, and city skylines.
+You are a senior AI prompt engineer creating refined prompts for business and corporate visuals.
+
+Your job:
+- Transform the raw input into a detailed, professional, and business-oriented image prompt.
+- Expand with contextual details about:
+  • Corporate settings (boardrooms, skyscrapers, modern offices, networking events)
+  • Business activities (presentations, negotiations, brainstorming sessions, teamwork)
+  • People (executives, entrepreneurs, consultants, diverse teams, global collaboration)
+  • Tone (professional, ambitious, strategic, innovative)
+  • Composition (formal meetings, handshake deals, conference tables, city skyline backgrounds)
+  • Lighting and atmosphere (clean, modern, premium, professional)
+
+Rules:
+- Ensure images are suitable for corporate branding, investor decks, strategy sessions, or professional reports.
+- Stay true to the user’s intent but emphasize professionalism, ambition, and success.
+- Output only the final refined image prompt.
 
 User’s raw prompt:
 "{USER_PROMPT}"
