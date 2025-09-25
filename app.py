@@ -198,16 +198,27 @@ with tab_edit:
 
                     # ✅ text first, then image
                     resp = IMAGE_MODEL.generate_content([enhanced_prompt, input_image])
-                    out_bytes = resp.candidates[0].content.parts[0].inline_data.data
 
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.image(Image.open(BytesIO(image_bytes)), caption="Original", use_column_width=True)
-                    with col2:
-                        st.image(Image.open(BytesIO(out_bytes)), caption="Edited", use_column_width=True)
+                    # ✅ Safely extract image
+                    out_bytes = None
+                    for part in resp.candidates[0].content.parts:
+                        if hasattr(part, "inline_data") and part.inline_data.data:
+                            out_bytes = part.inline_data.data
+                            break
 
-                    st.download_button("⬇️ Download Edited Image", data=out_bytes, file_name="edited.png", mime="image/png")
-                    st.session_state.edited_images.append({"original": image_bytes, "edited": out_bytes, "prompt": enhanced_prompt})
+                    if not out_bytes:
+                        st.error("❌ No image returned by Gemini. Try changing your instruction.")
+                    else:
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.image(Image.open(BytesIO(image_bytes)), caption="Original", use_column_width=True)
+                        with col2:
+                            st.image(Image.open(BytesIO(out_bytes)), caption="Edited", use_column_width=True)
+
+                        st.download_button("⬇️ Download Edited Image", data=out_bytes, file_name="edited.png", mime="image/png")
+                        st.session_state.edited_images.append(
+                            {"original": image_bytes, "edited": out_bytes, "prompt": enhanced_prompt}
+                        )
                 except Exception as e:
                     st.error(f"⚠️ Error editing image: {e}")
 
