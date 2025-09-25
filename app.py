@@ -26,7 +26,7 @@ IMAGE_MODEL = GenerativeModel("gemini-2.5-flash-image-preview")  # Nano Banana
 TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
-st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
+st.set_page_config(page_title="Image Generator + Editor", layout="wide")
 st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement)")
 
 # ---------------- STATE ----------------
