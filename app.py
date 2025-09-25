@@ -27,7 +27,7 @@ TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
 st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
-st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement + WebP + Multi-Edit)")
+st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement + WebP + Multi-Edit + Send to Edit)")
 
 # ---------------- STATE ----------------
 if "generated_images" not in st.session_state:
@@ -182,15 +182,15 @@ with tab_generate:
 with tab_edit:
     st.header("🖌️ Edit Images")
 
-    dept_edit = st.selectbox("🏢 Department", options=list(PROMPT_TEMPLATES.keys()), index=2, key="dept_edit")
-    style_edit = st.selectbox("🎨 Style", options=list(STYLE_DESCRIPTIONS.keys()), index=0, key="style_edit")
-    raw_prompt_edit = st.text_area("Enter your edit instruction", height=120, key="prompt_edit")
-    num_edit_images = st.slider("🧾 Number of edited images", 1, 4, 1, key="num_edit")
-
     # Check if image was sent from Generate tab
-    if st.session_state.selected_for_edit:
+    if st.session_state.get("selected_for_edit"):
         base_image = st.session_state.selected_for_edit["content"]
-        st.image(Image.open(BytesIO(base_image)), caption="Image selected from Generate tab", use_column_width=True)
+        st.image(Image.open(BytesIO(base_image)),
+                 caption=f"Image from Generate tab ({st.session_state.selected_for_edit['filename']})",
+                 use_column_width=True)
+        if st.button("❌ Clear selected image"):
+            st.session_state.selected_for_edit = None
+            base_image = None
     else:
         uploaded_file = st.file_uploader("📤 Or upload an image", type=["png", "jpg", "jpeg", "webp"])
         base_image = None
@@ -203,6 +203,11 @@ with tab_edit:
                 img.save(buf, format="PNG")
                 image_bytes = buf.getvalue()
             base_image = image_bytes
+
+    dept_edit = st.selectbox("🏢 Department", options=list(PROMPT_TEMPLATES.keys()), index=2, key="dept_edit")
+    style_edit = st.selectbox("🎨 Style", options=list(STYLE_DESCRIPTIONS.keys()), index=0, key="style_edit")
+    raw_prompt_edit = st.text_area("Enter your edit instruction", height=120, key="prompt_edit")
+    num_edit_images = st.slider("🧾 Number of edited images", 1, 4, 1, key="num_edit")
 
     if st.button("🚀 Edit Image", key="edit_btn_upload"):
         if not base_image or not raw_prompt_edit.strip():
