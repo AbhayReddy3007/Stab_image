@@ -45,8 +45,8 @@ if st.button("🚀 Edit Image"):
                 # Call Gemini image model
                 resp = MODEL.generate_content([input_image, prompt])
 
-                # Extract edited image
-                out_bytes = resp.candidates[0].content.parts[0].data
+                # Extract edited image (correct way)
+                out_bytes = resp.candidates[0].content.parts[0].inline_data.data
 
                 # Show before/after
                 col1, col2 = st.columns(2)
