@@ -2,6 +2,7 @@ import os
 import re
 import datetime
 import json
+from io import BytesIO
 import streamlit as st
 from PIL import Image
 
@@ -25,7 +26,7 @@ IMAGE_MODEL = GenerativeModel("gemini-2.5-flash-image-preview")  # Nano Banana
 TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
-st.set_page_config(page_title="Banana Image Generator + Editor", layout="wide")
+st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
 st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement)")
 
 # ---------------- STATE ----------------
@@ -161,7 +162,7 @@ with tab_generate:
                         filename = f"{dept_gen.lower()}_{style_gen.lower()}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{idx}.png"
                         st.session_state.generated_images.append({"filename": filename, "content": img_bytes})
                         with cols[idx]:
-                            st.image(img_bytes, caption=filename, use_column_width=True)
+                            st.image(Image.open(BytesIO(img_bytes)), caption=filename, use_column_width=True)
                             st.download_button("⬇️ Download", data=img_bytes, file_name=filename, mime="image/png")
 
 # ---------------- EDIT MODE ----------------
@@ -199,9 +200,9 @@ with tab_edit:
 
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.image(image_bytes, caption="Original", use_column_width=True)
+                        st.image(Image.open(BytesIO(image_bytes)), caption="Original", use_column_width=True)
                     with col2:
-                        st.image(out_bytes, caption="Edited", use_column_width=True)
+                        st.image(Image.open(BytesIO(out_bytes)), caption="Edited", use_column_width=True)
 
                     st.download_button("⬇️ Download Edited Image", data=out_bytes, file_name="edited.png", mime="image/png")
                     st.session_state.edited_images.append({"original": image_bytes, "edited": out_bytes, "prompt": enhanced_prompt})
@@ -214,7 +215,7 @@ if st.session_state.generated_images:
     st.markdown("### Generated Images")
     for i, img in enumerate(reversed(st.session_state.generated_images[-20:])):
         with st.expander(f"Generated {i+1}: {img['filename']}"):
-            st.image(img["content"], caption=img["filename"], use_container_width=True)
+            st.image(Image.open(BytesIO(img["content"])), caption=img["filename"], use_container_width=True)
             st.download_button("⬇️ Download Again", data=img["content"], file_name=img["filename"], mime="image/png", key=f"gen_hist_{i}")
 
 if st.session_state.edited_images:
@@ -223,7 +224,7 @@ if st.session_state.edited_images:
         with st.expander(f"Edited {i+1}: {entry['prompt']}"):
             col1, col2 = st.columns(2)
             with col1:
-                st.image(entry["original"], caption="Original", use_container_width=True)
+                st.image(Image.open(BytesIO(entry["original"])), caption="Original", use_container_width=True)
             with col2:
-                st.image(entry["edited"], caption="Edited", use_container_width=True)
+                st.image(Image.open(BytesIO(entry["edited"])), caption="Edited", use_container_width=True)
             st.download_button("⬇️ Download Edited", data=entry["edited"], file_name=f"edited_{i}.png", mime="image/png", key=f"edit_hist_{i}")
