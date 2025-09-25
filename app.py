@@ -27,15 +27,13 @@ TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
 st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
-st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement + Chain Edits)")
+st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement)")
 
 # ---------------- STATE ----------------
 if "generated_images" not in st.session_state:
     st.session_state.generated_images = []  # [{"filename","content"}]
 if "edited_images" not in st.session_state:
     st.session_state.edited_images = []  # [{"original","edited","prompt"}]
-if "last_edits" not in st.session_state:
-    st.session_state.last_edits = {}  # track last edited image per filename
 
 # ---------------- Prompt Templates ----------------
 PROMPT_TEMPLATES = {
@@ -120,7 +118,6 @@ def run_edit_flow(edit_prompt, base_bytes, filename):
             text_fallback = part.text
 
     if out_bytes:
-        st.session_state.last_edits[filename] = out_bytes
         return out_bytes
     else:
         if text_fallback:
@@ -168,25 +165,10 @@ with tab_generate:
                     for idx, img_bytes in enumerate(generated_raws):
                         filename = f"{dept_gen.lower()}_{style_gen.lower()}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{idx}.png"
                         st.session_state.generated_images.append({"filename": filename, "content": img_bytes})
-                        st.session_state.last_edits[filename] = img_bytes  # init for chain edits
 
                         with cols[idx]:
                             st.image(Image.open(BytesIO(img_bytes)), caption=filename, use_column_width=True)
                             st.download_button("⬇️ Download", data=img_bytes, file_name=filename, mime="image/png")
-
-                            # --- NEW: Edit generated image with chaining ---
-                            edit_prompt = st.text_area(f"✏️ Edit instruction for {filename}", key=f"edit_prompt_{idx}", height=100)
-                            if st.button(f"🖌️ Edit {filename}", key=f"edit_btn_{idx}"):
-                                if not edit_prompt.strip():
-                                    st.warning("Please enter an edit instruction.")
-                                else:
-                                    with st.spinner("Editing generated image..."):
-                                        base_bytes = st.session_state.last_edits.get(filename, img_bytes)
-                                        out_bytes = run_edit_flow(edit_prompt, base_bytes, filename)
-                                        if out_bytes:
-                                            st.image(Image.open(BytesIO(out_bytes)), caption=f"Edited {filename}", use_column_width=True)
-                                            st.download_button("⬇️ Download Edited", data=out_bytes, file_name=f"edited_{filename}", mime="image/png", key=f"dl_edit_{idx}")
-                                            st.session_state.edited_images.append({"original": base_bytes, "edited": out_bytes, "prompt": edit_prompt})
 
 # ---------------- EDIT MODE (Upload) ----------------
 with tab_edit:
