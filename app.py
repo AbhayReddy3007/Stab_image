@@ -25,7 +25,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
 vertexai.init(project=PROJECT_ID, location=REGION)
 
 # Models
-IMAGE_MODEL_NAME = "gemini-2.5-flash-image-preview-001"
+IMAGE_MODEL_NAME = "gemini-2.5-flash-image-preview"
 IMAGE_MODEL = GenerativeModel(IMAGE_MODEL_NAME)
 
 TEXT_MODEL_NAME = "gemini-2.0-flash"
