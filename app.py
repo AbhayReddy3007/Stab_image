@@ -27,15 +27,13 @@ TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
 st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
-st.title("🖼️ AI Image Generator + Editor (Nano Banana + Refinement + WebP + Multi-Edit + Send to Edit)")
+st.title("🖼️ AI Image Generator + Editor")
 
 # ---------------- STATE ----------------
 if "generated_images" not in st.session_state:
     st.session_state.generated_images = []  # [{"filename","content"}]
 if "edited_images" not in st.session_state:
     st.session_state.edited_images = []  # [{"original","edited","prompt"}]
-if "selected_for_edit" not in st.session_state:
-    st.session_state.selected_for_edit = None  # store image bytes from Generate tab
 
 # ---------------- Prompt Templates ----------------
 PROMPT_TEMPLATES = {
@@ -167,44 +165,25 @@ with tab_generate:
                         filename = f"{dept_gen.lower()}_{style_gen.lower()}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{idx}.png"
                         st.session_state.generated_images.append({"filename": filename, "content": img_bytes})
 
-                        with st.container():
-                            st.image(Image.open(BytesIO(img_bytes)), caption=filename, use_column_width=True)
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                st.download_button("⬇️ Download", data=img_bytes, file_name=filename, mime="image/png", key=f"dl_{idx}")
-                            with col2:
-                                if st.button("✏️ Send to Edit tab", key=f"send_edit_{idx}"):
-                                    st.session_state.selected_for_edit = {"filename": filename, "content": img_bytes}
-                                    st.success("✅ Image sent to Edit tab! Switch to Edit tab to continue.")
+                        st.image(Image.open(BytesIO(img_bytes)), caption=filename, use_column_width=True)
+                        st.download_button("⬇️ Download", data=img_bytes, file_name=filename, mime="image/png", key=f"dl_{idx}")
 
 
 # ---------------- EDIT MODE ----------------
 with tab_edit:
-    st.header("🖌️ Edit Images")
+    st.header("🖌️ Edit Uploaded Images")
 
-    # Always initialize base_image
+    uploaded_file = st.file_uploader("📤 Upload an image", type=["png", "jpg", "jpeg", "webp"])
     base_image = None
-
-    # If user sent an image from Generate tab
-    if st.session_state.get("selected_for_edit"):
-        base_image = st.session_state.selected_for_edit["content"]
-        st.image(Image.open(BytesIO(base_image)),
-                 caption=f"Image from Generate tab ({st.session_state.selected_for_edit['filename']})",
-                 use_column_width=True)
-        if st.button("❌ Clear selected image"):
-            st.session_state.selected_for_edit = None
-            base_image = None
-    else:
-        uploaded_file = st.file_uploader("📤 Or upload an image", type=["png", "jpg", "jpeg", "webp"])
-        if uploaded_file:
-            image_bytes = uploaded_file.read()
-            mime_type = "image/" + uploaded_file.type.split("/")[-1]
-            if mime_type == "image/webp":  # ✅ Convert WebP → PNG
-                img = Image.open(BytesIO(image_bytes)).convert("RGB")
-                buf = BytesIO()
-                img.save(buf, format="PNG")
-                image_bytes = buf.getvalue()
-            base_image = image_bytes
+    if uploaded_file:
+        image_bytes = uploaded_file.read()
+        mime_type = "image/" + uploaded_file.type.split("/")[-1]
+        if mime_type == "image/webp":  # ✅ Convert WebP → PNG
+            img = Image.open(BytesIO(image_bytes)).convert("RGB")
+            buf = BytesIO()
+            img.save(buf, format="PNG")
+            image_bytes = buf.getvalue()
+        base_image = image_bytes
 
     dept_edit = st.selectbox("🏢 Department", options=list(PROMPT_TEMPLATES.keys()), index=2, key="dept_edit")
     style_edit = st.selectbox("🎨 Style", options=list(STYLE_DESCRIPTIONS.keys()), index=0, key="style_edit")
@@ -213,7 +192,7 @@ with tab_edit:
 
     if st.button("🚀 Edit Image", key="edit_btn_upload"):
         if not base_image or not raw_prompt_edit.strip():
-            st.warning("Please select/upload an image and enter an instruction.")
+            st.warning("Please upload an image and enter an instruction.")
         else:
             with st.spinner("Refining edit instruction with Gemini..."):
                 refinement_prompt = PROMPT_TEMPLATES[dept_edit].replace("{USER_PROMPT}", raw_prompt_edit)
