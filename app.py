@@ -1,5 +1,4 @@
 import os
-import io
 import json
 import streamlit as st
 from PIL import Image
@@ -10,26 +9,25 @@ from google.oauth2 import service_account
 
 # ---------------- CONFIG ----------------
 PROJECT_ID = st.secrets["gcp_service_account"]["project_id"]
-REGION = "us-central1"
 
-# Create credentials directly from secrets
+# Create credentials directly from secrets (no metadata server needed)
 credentials = service_account.Credentials.from_service_account_info(
     dict(st.secrets["gcp_service_account"])
 )
 
-# Init Vertex AI with creds
-vertexai.init(project=PROJECT_ID, location=REGION, credentials=credentials)
+# Init Vertex AI with GLOBAL region for Nano Banana
+vertexai.init(project=PROJECT_ID, location="global", credentials=credentials)
 
-# Load Nano Banana
+# Load Gemini 2.5 Flash Image Preview (Nano Banana)
 MODEL = GenerativeModel("gemini-2.5-flash-image-preview")
 
 # ---------------- STREAMLIT UI ----------------
 st.set_page_config(page_title="Nano Banana Image Editor", layout="wide")
 st.title("🍌✨ Nano Banana (Gemini 2.5 Flash Image) Editor")
 
-uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+uploaded_file = st.file_uploader("📤 Upload an image", type=["png", "jpg", "jpeg"])
 prompt = st.text_area(
-    "Enter your edit instruction",
+    "✏️ Enter your edit instruction",
     placeholder="e.g. Turn the background into a futuristic neon city"
 )
 
