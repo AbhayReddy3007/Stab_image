@@ -26,7 +26,7 @@ IMAGE_MODEL = GenerativeModel("gemini-2.5-flash-image-preview")  # Nano Banana
 TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
-st.set_page_config(page_title="Banana Image Generator + Editor", layout="wide")
+st.set_page_config(page_title="AI Image Generator + Editor", layout="wide")
 st.title("🖼️ AI Image Generator + Editor (Nano Banana + Smart Refinement)")
 
 # ---------------- STATE ----------------
@@ -195,7 +195,9 @@ with tab_edit:
                     image_bytes = uploaded_file.read()
                     mime_type = "image/" + uploaded_file.type.split("/")[-1]
                     input_image = Part.from_data(mime_type=mime_type, data=image_bytes)
-                    resp = IMAGE_MODEL.generate_content([input_image, enhanced_prompt])
+
+                    # ✅ text first, then image
+                    resp = IMAGE_MODEL.generate_content([enhanced_prompt, input_image])
                     out_bytes = resp.candidates[0].content.parts[0].inline_data.data
 
                     col1, col2 = st.columns(2)
