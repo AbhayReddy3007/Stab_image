@@ -261,7 +261,7 @@ tab_generate, tab_edit = st.tabs(["✨ Generate Images", "🖌️ Edit Images"])
 
 # ---------------- GENERATE MODE ----------------
 with tab_generate:
-    st.header("✨ Generate Images from Scratch")
+    st.header("✨ Generate Images ")
 
     dept_gen = st.selectbox("🏢 Department", options=list(PROMPT_TEMPLATES.keys()), index=2, key="dept_gen")
     style_gen = st.selectbox("🎨 Style", options=list(STYLE_DESCRIPTIONS.keys()), index=0, key="style_gen")
