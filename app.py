@@ -180,7 +180,6 @@ STYLE_DESCRIPTIONS = {
     "None": "No special styling — keep the image natural, faithful to the user’s idea.",
     "Smart": "A clean, balanced, and polished look. Professional yet neutral, visually appealing without strong artistic bias.",
     "Cinematic": "Film-style composition with professional lighting. Wide dynamic range, dramatic highlights, storytelling feel.",
-    "Cinematic Concept": "Epic and dramatic like a movie concept frame. Wide cinematic perspective, moody atmosphere, detailed world-building.",
     "Creative": "Playful, imaginative, and experimental. Bold artistic choices, unexpected elements, and expressive color use.",
     "Bokeh": "Photography style with shallow depth of field. Subject in sharp focus with soft, dreamy, blurred backgrounds.",
     "Macro": "Extreme close-up photography. High detail, textures visible, shallow focus highlighting minute features.",
