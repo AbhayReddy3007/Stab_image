@@ -53,6 +53,7 @@ When refining, include:
 
 Special Brand Rule:
 - If the user asks for an image related to a specific brand, seamlessly add the brand’s tagline into the final image prompt.
+- For **Dr. Reddy’s**, the correct tagline is: “Good Health Can’t Wait.”
 
 Rules:
 - Stay faithful to the user’s idea but elevate it for use in ads, social media, or presentations.
