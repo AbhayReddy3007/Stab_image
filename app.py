@@ -22,7 +22,7 @@ credentials = service_account.Credentials.from_service_account_info(
 vertexai.init(project=PROJECT_ID, location="global", credentials=credentials)
 
 # Models
-IMAGE_MODEL = GenerativeModel("gemini-2.5-flash-image-preview")  # Nano Banana
+IMAGE_MODEL = GenerativeModel("gemini-2.5-flash-image")  # Nano Banana
 TEXT_MODEL = GenerativeModel("gemini-2.0-flash")  # Prompt refinement
 
 # ---------------- STREAMLIT UI ----------------
