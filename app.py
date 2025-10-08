@@ -37,6 +37,15 @@ if "edited_images" not in st.session_state:
 
 # ---------------- Prompt Templates ----------------
 PROMPT_TEMPLATES = {
+    
+    "None": """
+Dont make any changes in the user's prompt.Follow it as it is
+User’s raw prompt:
+"{USER_PROMPT}"
+
+Refined general image prompt:
+""",
+    
     "Marketing": """
 You are a senior AI prompt engineer creating polished prompts for marketing and advertising visuals.
 
